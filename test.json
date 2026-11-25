@@ -1,0 +1,23 @@
+{
+    "Tables": {
+        "test": {
+            "Name": "test",
+            "Columns": [
+                {
+                    "Name": "c1",
+                    "Type": "INT"
+                },
+                {
+                    "Name": "c2",
+                    "Type": "BOOL"
+                }
+            ],
+            "Rows": [
+                [
+                    9,
+                    true
+                ]
+            ]
+        }
+    }
+}
