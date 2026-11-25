@@ -16,28 +16,11 @@ func (t *Table) Insert(row Row) error {
 	if len(row) != len(t.Columns) {
 		return fmt.Errorf("invalid number of values")
 	}
+	for n, element := range row {
+		if !ValidateType(element, t.Columns[n].Type) {
+			return fmt.Errorf("incorrect types")
+		}
+	}
 	t.Rows = append(t.Rows, row)
 	return nil
-}
-
-func ValidateType(value any, dataType string) bool {
-	switch dataType {
-	case "INT":
-		_, ok := value.(int)
-		return ok
-
-	case "TEXT":
-		_, ok := value.(string)
-		return ok
-
-	case "BOOL":
-		_, ok := value.(bool)
-		return ok
-
-	case "FLOAT":
-		_, ok := value.(float64)
-		return ok
-	}
-
-	return false
 }
