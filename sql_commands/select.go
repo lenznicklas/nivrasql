@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-func (t *Table) Select(columns []Column) ([]Row, error) {
+func (t *Table) Select(columns []string) ([]Row, error) {
 	if len(columns) == 1 && columns[0] == "*" {
 		return t.Rows, nil
 	}
@@ -12,9 +12,9 @@ func (t *Table) Select(columns []Column) ([]Row, error) {
 	result := []Row{}
 
 	for _, column := range columns {
-		index := t.GetColumnIndex(column.Name)
+		index := t.GetColumnIndex(column)
 		if index == -1 {
-			return nil, fmt.Errorf("column %s not found", column.Name)
+			return nil, fmt.Errorf("column %s not found", column)
 		}
 
 		indices = append(indices, index)
