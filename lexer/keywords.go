@@ -17,4 +17,5 @@ var Keywords = map[string]TokenType{
 	"AND":      And,
 	"OR":       Or,
 	"NOT":      Not,
+	"NULL":     Null,
 }

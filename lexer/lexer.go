@@ -1,47 +1,6 @@
 package lexer
 
-type TokenType int
-
-const (
-	Illegal TokenType = iota
-	EOF
-
-	Select
-	Create
-	Drop
-	Database
-	Table
-	Insert
-	Into
-	Values
-	From
-	Where
-	Identifier
-	Delete
-	Update
-	Set
-	And
-	Or
-	Not
-
-	Equals
-	EqualsEquals
-	BangEquals
-	Smaller
-	SmallerEquals
-	Greater
-	GreaterEquals
-	LParen
-	RParen
-
-	Integer
-	Float
-)
-
-type Token struct {
-	Type  TokenType
-	Value string
-}
+import "fmt"
 
 type Lexer struct {
 	Command  string
@@ -49,46 +8,82 @@ type Lexer struct {
 	Position int
 }
 
-func (l *Lexer) Lex() {
+func (l *Lexer) Lex() error {
 	for l.Position = 0; l.Position < len(l.Command); l.Position++ {
+		l.Tokens = nil
 		char := l.Command[l.Position]
 
 		switch char {
 		case '=':
-			l.Tokens = append(l.Tokens, Token{Equals, ""})
+			if l.Peek('=') {
+				l.AddToken(EqualsEquals, "==")
+			} else {
+				l.AddToken(Equals, "=")
+			}
 		case '(':
-			l.Tokens = append(l.Tokens, Token{LParen, ""})
+			l.AddToken(LParen, "(")
 		case ')':
-			l.Tokens = append(l.Tokens, Token{RParen, ""})
+			l.AddToken(RParen, ")")
+		case ',':
+			l.AddToken(Comma, ",")
+		case ';':
+			l.AddToken(Semicolon, ";")
+		case '+':
+			l.AddToken(Plus, "+")
+		case '-':
+			l.AddToken(Minus, "-")
+		case '*':
+			l.AddToken(Asterisk, "*")
+		case '/':
+			l.AddToken(Slash, "/")
+		case '.':
+			l.AddToken(Dot, ".")
 		case '!':
 			if l.Peek('=') {
-				l.Tokens = append(l.Tokens, Token{BangEquals, ""})
+				l.AddToken(BangEquals, "!=")
+			} else {
+				return fmt.Errorf("\"!\" must only be used as \"!=\"")
 			}
 		case '<':
 			if l.Peek('=') {
-				l.Tokens = append(l.Tokens, Token{SmallerEquals, ""})
+				l.AddToken(SmallerEquals, "<=")
 			} else {
-				l.Tokens = append(l.Tokens, Token{Smaller, ""})
+				l.AddToken(Smaller, "<")
 			}
 		case '>':
 			if l.Peek('=') {
-				l.Tokens = append(l.Tokens, Token{GreaterEquals, ""})
+				l.AddToken(GreaterEquals, ">=")
 			} else {
-				l.Tokens = append(l.Tokens, Token{Greater, ""})
+				l.AddToken(Greater, ">")
 			}
+		case '\'':
+			token, err := l.ReadString()
+			if err != nil {
+				return err
+			}
+			l.Tokens = append(l.Tokens, token)
+		case ' ', '\n', '\t', '\r':
+			continue
 		default:
 			if IsLetter(char) {
-				word, end := l.ReadWord()
-
-				l.Tokens = append(l.Tokens, Token{LookUpKeyword(word), word})
-				l.Position = end - 1
+				word := l.ReadWord()
+				l.AddToken(LookUpKeyword(word), word)
+				l.Position--
 			} else if IsDigit(char) {
-				token, end := l.ReadNumber()
+				token := l.ReadNumber()
 				l.Tokens = append(l.Tokens, token)
-				l.Position = end - 1
+				l.Position--
+			} else {
+				return fmt.Errorf(
+					"unexpected character %q at position %d",
+					char,
+					l.Position,
+				)
 			}
 		}
 	}
+	l.AddToken(EOF, "EOF")
+	return nil
 }
 
 func (l *Lexer) Peek(char byte) bool {
@@ -99,31 +94,56 @@ func (l *Lexer) Peek(char byte) bool {
 	return false
 }
 
-func (l *Lexer) ReadWord() (string, int) {
+func (l *Lexer) AddToken(tokenType TokenType, val string) {
+	l.Tokens = append(l.Tokens, Token{tokenType, val})
+}
+
+func (l *Lexer) ReadWord() string {
 	start := l.Position
 
-	for n < len(l.Command) &&
+	for l.Position < len(l.Command) &&
 		(IsLetter(l.Command[l.Position]) || IsDigit(l.Command[l.Position])) {
 		l.Position++
 	}
 
-	return l.Command[start:l.Position], l.Position
+	return l.Command[start:l.Position]
 }
 
-func (l *Lexer) ReadNumber() (Token, int) {
+func (l *Lexer) ReadNumber() Token {
 	start := l.Position
 	tokenType := Integer
 
 	for l.Position < len(l.Command) &&
+		IsDigit(l.Command[l.Position]) {
+		l.Position++
+	}
+
+	if l.Position+1 < len(l.Command) &&
 		l.Command[l.Position] == '.' &&
 		IsDigit(l.Command[l.Position+1]) {
 		tokenType = Float
 		l.Position++
 
-		for l.Position < len(l.Command) && IsDigit(l.Command[l.Position]) {
+		for l.Position < len(l.Command) &&
+			IsDigit(l.Command[l.Position]) {
 			l.Position++
 		}
 	}
 
-	return Token{tokenType, l.Command[start:l.Position]}, l.Position
+	return Token{tokenType, l.Command[start:l.Position]}
+}
+
+func (l *Lexer) ReadString() (Token, error) {
+	l.Position++
+	start := l.Position
+
+	for l.Position < len(l.Command) && l.Command[l.Position] != '\'' {
+		l.Position++
+	}
+
+	if l.Position >= len(l.Command) {
+		return Token{}, fmt.Errorf("Unterminated string")
+	}
+
+	return Token{String, l.Command[start:l.Position]}, nil
 }
