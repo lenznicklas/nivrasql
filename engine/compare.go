@@ -77,4 +77,5 @@ func compare(a any, operator string, b any) (bool, error) {
 			return false, fmt.Errorf("cannot compare BOOL using <=")
 		}
 	}
+	return false, fmt.Errorf("not a supported operator")
 }
