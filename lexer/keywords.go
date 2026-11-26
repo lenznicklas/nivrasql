@@ -1,0 +1,20 @@
+package lexer
+
+var Keywords = map[string]TokenType{
+	"SELECT":   Select,
+	"CREATE":   Create,
+	"DROP":     Drop,
+	"DATABASE": Database,
+	"TABLE":    Table,
+	"INSERT":   Insert,
+	"INTO":     Into,
+	"VALUES":   Values,
+	"FROM":     From,
+	"WHERE":    Where,
+	"DELETE":   Delete,
+	"UPDATE":   Update,
+	"SET":      Set,
+	"AND":      And,
+	"OR":       Or,
+	"NOT":      Not,
+}
