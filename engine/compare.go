@@ -1,8 +1,14 @@
 package engine
 
-import "fmt"
+import (
+	"fmt"
+	"reflect"
+)
 
 func Compare(a any, operator string, b any) (bool, error) {
+	if reflect.TypeOf(a) != reflect.TypeOf(b) {
+		return false, fmt.Errorf("incompatible types: %T and %T", a, b)
+	}
 	switch operator {
 	case "==", "=":
 		return a == b, nil
