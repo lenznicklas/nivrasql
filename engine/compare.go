@@ -2,7 +2,7 @@ package engine
 
 import "fmt"
 
-func compare(a any, operator string, b any) (bool, error) {
+func Compare(a any, operator string, b any) (bool, error) {
 	switch operator {
 	case "==":
 		return a == b, nil
