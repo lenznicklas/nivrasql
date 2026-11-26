@@ -4,9 +4,9 @@ import "fmt"
 
 func Compare(a any, operator string, b any) (bool, error) {
 	switch operator {
-	case "==":
+	case "==", "=":
 		return a == b, nil
-	case "!=":
+	case "!=", "<>":
 		return a != b, nil
 	case ">":
 		switch x := a.(type) {
@@ -77,5 +77,5 @@ func Compare(a any, operator string, b any) (bool, error) {
 			return false, fmt.Errorf("cannot compare BOOL using <=")
 		}
 	}
-	return false, fmt.Errorf("not a supported operator")
+	return false, fmt.Errorf("cannot compare %T and %T using %s", a, b, operator)
 }

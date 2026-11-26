@@ -22,7 +22,7 @@ func (t *Table) Where(condition Condition) ([]Row, error) {
 	results := []Row{}
 
 	for _, row := range t.Rows {
-		comp, err := Compare(row[index], condition.Operator, value)
+		comp, err := Compare(row[index], condition.Operator, condition.Value)
 		if err != nil{
 			return nil, err
 		}
