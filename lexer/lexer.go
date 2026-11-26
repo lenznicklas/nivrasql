@@ -9,8 +9,8 @@ type Lexer struct {
 }
 
 func (l *Lexer) Lex() error {
+	l.Tokens = nil
 	for l.Position = 0; l.Position < len(l.Command); l.Position++ {
-		l.Tokens = nil
 		char := l.Command[l.Position]
 
 		switch char {
@@ -82,7 +82,7 @@ func (l *Lexer) Lex() error {
 			}
 		}
 	}
-	l.AddToken(EOF, "EOF")
+	l.AddToken(EOF, "")
 	return nil
 }
 
