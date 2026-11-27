@@ -3,6 +3,7 @@ package parser
 import (
 	"fmt"
 	"nivrasql/lexer"
+	"strconv"
 )
 
 func (p *Parser) Parse() (Statement, error) {
@@ -12,6 +13,8 @@ func (p *Parser) Parse() (Statement, error) {
 	switch p.Current().Type {
 	case lexer.Select:
 		stmt, err = p.ParseSelect()
+	case lexer.Insert:
+		stmt, err = p.ParseInsert()
 
 	default:
 		return nil, fmt.Errorf(
@@ -27,49 +30,7 @@ func (p *Parser) Parse() (Statement, error) {
 	p.Match(lexer.Semicolon)
 
 	if _, err := p.Expect(lexer.EOF); err != nil {
-		return stmt, nil
-	}
-
-	return stmt, nil
-}
-
-func (p *Parser) ParseSelect() (*SelectStatement, error) {
-	stmt := &SelectStatement{}
-
-	// SELECT
-	if _, err := p.Expect(lexer.Select); err != nil {
 		return nil, err
-	}
-
-	// Columns
-	columns, err := p.ParseColumns()
-	if err != nil {
-		return nil, err
-	}
-
-	stmt.Columns = columns
-
-	// FROM
-	if _, err := p.Expect(lexer.From); err != nil {
-		return nil, err
-	}
-
-	// Tablename
-	table, err := p.Expect(lexer.Identifier)
-	if err != nil {
-		return nil, err
-	}
-
-	stmt.Table = table.Value
-
-	// WHERE
-	if p.Match(lexer.Where) {
-		condition, err := p.ParseCondition()
-		if err != nil {
-			return nil, err
-		}
-
-		stmt.Where = condition
 	}
 
 	return stmt, nil
@@ -90,13 +51,76 @@ func (p *Parser) ParseColumns() ([]string, error) {
 
 		cols = append(cols, token.Value)
 
-		if p.Current().Type != lexer.Comma {
-			return cols, nil
+		if !p.Match(lexer.Comma) {
+			break
 		}
 	}
 
 	return cols, nil
 }
+
+func (p *Parser) ParseValues() ([]any, error) {
+	var vals []any
+
+	for {
+		token, err := p.Expect(lexer.Identifier)
+		if err != nil {
+			return nil, err
+		}
+
+		vals = append(vals, token.Value)
+
+		if !p.Match(lexer.Comma) {
+			break
+		}
+	}
+
+	return vals, nil
+}
+
+func (p *Parser) ParseColDefs() ([]ColumnDefinition, error) {
+	var coldefs []ColumnDefinition
+
+	for {
+		name, err := p.Expect(lexer.Identifier)
+		if err != nil {
+			return nil, err
+		}
+
+		colType, err := p.ParseType()
+		if err != nil {
+			return nil, err
+		}
+		coldefs = append(coldefs, ColumnDefinition{name.Value, colType})
+
+		if !p.Match(lexer.Comma) {
+			break
+		}
+
+		return coldefs, nil
+	}
+}
+
+func (p *Parser) ParseType() (string, error) {
+	cType := p.Current().Type
+
+	if cType == lexer.Integer {
+		return "INT", nil
+	}
+	if cType == lexer.Text {
+		return "TEXT", nil
+	}
+	if cType == lexer.Float {
+		return "FLOAT", nil
+	}
+	if cType == lexer.Boolean {
+		return "BOOL", nil
+	}
+	p.Advance()
+
+	return "", fmt.Errorf("not a type")
+}
+
 func (p *Parser) ParseCondition() (*Condition, error) {
 	col, err := p.Expect(lexer.Identifier)
 	if err != nil {
@@ -134,32 +158,30 @@ func (p *Parser) ParseOperator() (string, error) {
 	return "", fmt.Errorf("expected operator, got %v", token.Value)
 }
 
-func (p *Parser) ParseLiteral() (any, error){
+func (p *Parser) ParseLiteral() (any, error) {
 	token := p.Current()
 
-	switch token.Type{
-		case lexer.Integer:
+	switch token.Type {
+	case lexer.Integer:
 		p.Advance()
 		return strconv.Atoi(token.Value)
-		case lexer.Float:
+	case lexer.Float:
 		p.Advance()
 		return strconv.ParseFloat(token.Value, 64)
-		case lexer.String:
+	case lexer.String:
 		p.Advance()
 		return token.Value, nil
-		case lexer.True:
-		p.Advance()
-		return false, nil
-		case lexer.False:
+	case lexer.True:
 		p.Advance()
 		return true, nil
+	case lexer.False:
+		p.Advance()
+		return false, nil
 
-
-		default:
+	default:
 		return nil, fmt.Errorf(
 			"expected literal, got %v",
 			token.Type,
 		)
-
 	}
 }

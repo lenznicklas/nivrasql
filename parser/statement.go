@@ -15,6 +15,16 @@ type InsertStatement struct {
 	Values []any
 }
 
+type CreateTableStatement struct {
+	Table   string
+	Columns []ColumnDefinition
+}
+
+type ColumnDefinition struct {
+	Name string
+	Type string
+}
+
 type DeleteStatement struct {
 	Table string
 	Where *Condition
@@ -26,6 +36,7 @@ type Condition struct {
 	Value    any
 }
 
-func (*SelectStatement) statementNode() {}
-func (*InsertStatement) statementNode() {}
-func (*DeleteStatement) statementNode(){}
+func (*SelectStatement) statementNode()      {}
+func (*InsertStatement) statementNode()      {}
+func (*DeleteStatement) statementNode()      {}
+func (*CreateTableStatement) statementNode() {}

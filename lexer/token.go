@@ -44,6 +44,7 @@ const (
 
 	Integer
 	Float
+	Text
 	String
 	Boolean
 

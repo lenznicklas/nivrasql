@@ -7,8 +7,17 @@ import (
 
 func main() {
 	cols := []engine.Column{}
-	cols = append(cols, engine.Column{"c1", "INT"})
-	cols = append(cols, engine.Column{"c2", "BOOL"})
+
+	cols = append(cols, engine.Column{
+		Name: "c1",
+		Type: "INT",
+	})
+
+	cols = append(cols, engine.Column{
+		Name: "c2",
+		Type: "BOOL",
+	})
+
 	db := engine.NewDatabase()
 	err := db.CreateTable("test", cols)
 	if err != nil {

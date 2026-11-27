@@ -20,4 +20,8 @@ var Keywords = map[string]TokenType{
 	"NULL":     Null,
 	"TRUE":     True,
 	"FALSE":    False,
+	"INT":      Integer,
+	"FLOAT":    Float,
+	"BOOL":     Boolean,
+	"TEXT":     Text,
 }
