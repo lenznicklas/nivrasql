@@ -30,6 +30,10 @@ type DeleteStatement struct {
 	Where *Condition
 }
 
+type DropTableStatement struct {
+	Table string
+}
+
 type Condition struct {
 	Column   string
 	Operator string
@@ -40,3 +44,4 @@ func (*SelectStatement) statementNode()      {}
 func (*InsertStatement) statementNode()      {}
 func (*DeleteStatement) statementNode()      {}
 func (*CreateTableStatement) statementNode() {}
+func (*DropTableStatement) statementNode()   {}

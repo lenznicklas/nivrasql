@@ -45,10 +45,5 @@ func (p *Parser) ParseInsert() (*InsertStatement, error) {
 		return nil, err
 	}
 
-	// SEMICOLON
-	if _, err := p.Expect(lexer.Semicolon); err != nil {
-		return nil, err
-	}
-
 	return stmt, nil
 }

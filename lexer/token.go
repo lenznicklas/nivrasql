@@ -42,9 +42,13 @@ const (
 	Slash
 	Dot
 
+	TypeInt
+	TypeFloat
+	TypeText
+	TypeBool
+
 	Integer
 	Float
-	Text
 	String
 	Boolean
 

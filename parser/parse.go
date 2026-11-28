@@ -15,6 +15,12 @@ func (p *Parser) Parse() (Statement, error) {
 		stmt, err = p.ParseSelect()
 	case lexer.Insert:
 		stmt, err = p.ParseInsert()
+	case lexer.Create:
+		stmt, err = p.ParseCreateTable()
+	case lexer.Delete:
+		stmt, err = p.ParseDelete()
+	case lexer.Drop:
+		stmt, err = p.ParseDropTable()
 
 	default:
 		return nil, fmt.Errorf(
@@ -63,12 +69,12 @@ func (p *Parser) ParseValues() ([]any, error) {
 	var vals []any
 
 	for {
-		token, err := p.Expect(lexer.Identifier)
+		value, err := p.ParseLiteral()
 		if err != nil {
 			return nil, err
 		}
 
-		vals = append(vals, token.Value)
+		vals = append(vals, value)
 
 		if !p.Match(lexer.Comma) {
 			break
@@ -96,29 +102,30 @@ func (p *Parser) ParseColDefs() ([]ColumnDefinition, error) {
 		if !p.Match(lexer.Comma) {
 			break
 		}
-
-		return coldefs, nil
 	}
+
+	return coldefs, nil
 }
 
 func (p *Parser) ParseType() (string, error) {
-	cType := p.Current().Type
+	token := p.Current()
 
-	if cType == lexer.Integer {
+	switch token.Type {
+	case lexer.TypeInt:
+		p.Advance()
 		return "INT", nil
-	}
-	if cType == lexer.Text {
+	case lexer.TypeText:
+		p.Advance()
 		return "TEXT", nil
-	}
-	if cType == lexer.Float {
+	case lexer.TypeFloat:
+		p.Advance()
 		return "FLOAT", nil
-	}
-	if cType == lexer.Boolean {
+	case lexer.TypeBool:
+		p.Advance()
 		return "BOOL", nil
 	}
-	p.Advance()
 
-	return "", fmt.Errorf("not a type")
+	return "", fmt.Errorf("expected data type, got %q", token.Value)
 }
 
 func (p *Parser) ParseCondition() (*Condition, error) {
